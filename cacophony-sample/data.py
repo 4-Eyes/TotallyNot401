@@ -15,6 +15,7 @@ from PIL import Image
 
 classes = {}
 class_iterator = 0
+image_size = None
 
 def load_images(train_folder, valid_folder, test_folder):
     ''' 
@@ -43,6 +44,8 @@ def load_folder(folder):
     clazzes = []
     working_dir = os.path.join(os.getcwd(),folder)
     for dir in [os.path.join(working_dir, d) for d in os.listdir(working_dir) if os.path.isdir(os.path.join(working_dir, d))]:
+        if "disabled" in dir:
+            continue
         m = background.Movement(dir)
         image_paths = m.getMovementImages()
 
@@ -62,9 +65,15 @@ def load_image(filename):
     ''' 
     Returns the image as a 1d vector of grayscale values
     '''
+    global image_size
+
     img = Image.open(filename).convert('L')
+
+    if image_size is None:
+        image_size = img.size
+
     # extract the image as a vector of grayscale values between 0 and 1
-    raster = (numpy.asarray(img, dtype='float64') / 256.).reshape(48*64)
+    raster = (numpy.asarray(img, dtype='float64') / 256.).reshape(image_size[1]*image_size[0])
     # print raster # DEBUG - shows the vector of greyscale values
     return raster
 
@@ -77,3 +86,6 @@ def load_data():
 
     return load_images(TRAIN_DIR, TRAIN_DIR, TRAIN_DIR)
 
+def get_metadata():
+    global image_size
+    return len(classes),image_size

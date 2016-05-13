@@ -31,10 +31,17 @@ from logistic_sgd import LogisticRegression
 from convolutional_mlp import LeNetConvPoolLayer
 
 from data import load_data
+from data import get_metadata
 
 # for plotting images of the filters
 from PIL import Image
 import pylab 
+
+im_width = None
+im_height = None
+
+def new_size(dimensions, filter_size):
+    return (dimensions[0]-filter_size+1)//2, (dimensions[1]-filter_size+1)//2
 
 def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
 					
@@ -56,6 +63,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
 	
 	Adapted from convolutional_mlp::evaluate_lenet5
     """
+    global im_width, im_height
 
     filter_size = 5 # number of pixels across for the convolutional filter
 	
@@ -63,7 +71,8 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     #rng = numpy.random.RandomState()
 
     datasets = load_data()
-	
+    im_width, im_height = get_metadata()[1]
+
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
     test_set_x, test_set_y = datasets[2]
@@ -92,7 +101,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     # Reshape matrix of rasterized images of shape (batch_size, 48 * 64)
     # to a 4D tensor, compatible with our LeNetConvPoolLayer
     # (48, 64) is the size of cacophony small images. (height, width)
-    layer0_input = x.reshape((batch_size, 1, 48, 64))
+    layer0_input = x.reshape((batch_size, 1, im_height, im_width))
 
     # Construct the first convolutional pooling layer:
     # filtering reduces the image size to (48-5+1 , 64-5+1) = (44, 60)
@@ -101,7 +110,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     layer0 = LeNetConvPoolLayer(
         rng,
         input=layer0_input,
-        image_shape=(batch_size, 1, 48, 64),
+        image_shape=(batch_size, 1, im_height, im_width),
         filter_shape=(nkerns[0], 1, filter_size, filter_size),
         poolsize=(2, 2)
     )
@@ -110,10 +119,11 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     # filtering reduces the image size to (22-5+1, 30-5+1) = (18, 26)
     # maxpooling reduces this further to (18/2, 26/2) = (9, 13)
     # 4D output tensor is thus of shape (batch_size, nkerns[1], 9, 13)
+    layer1_dim = new_size((im_height, im_width), filter_size)
     layer1 = LeNetConvPoolLayer(
         rng,
         input=layer0.output,
-        image_shape=(batch_size, nkerns[0], 22, 30), # previous layer generated 22*30 sized "images"
+        image_shape=(batch_size, nkerns[0], layer1_dim[0], layer1_dim[1]), # previous layer generated 22*30 sized "images"
         filter_shape=(nkerns[1], nkerns[0], filter_size, filter_size),
         poolsize=(2, 2)
     )
@@ -123,18 +133,18 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     # This will generate a matrix of shape (batch_size, nkerns[1] * 9 * 13),
     # or (1, 50 * 9 * 13) with the default values.
     layer2_input = layer1.output.flatten(2)
-
+    layer2_dim = new_size(layer1_dim, filter_size) 
     # construct a fully-connected sigmoidal layer
     layer2 = HiddenLayer(
         rng,
         input=layer2_input,
-        n_in=nkerns[1] * 9 * 13, # 9*13 is the number of pixels in the "image" from the previous layer
+        n_in=nkerns[1] * layer2_dim[0] * layer2_dim[1], # 9*13 is the number of pixels in the "image" from the previous layer
         n_out=batch_size,
         activation=T.tanh
     )
 
     # classify the values of the fully-connected sigmoidal layer
-    layer3 = LogisticRegression(input=layer2.output, n_in=batch_size, n_out=3) # n_out is the number of classes
+    layer3 = LogisticRegression(input=layer2.output, n_in=batch_size, n_out=get_metadata()[0]) # n_out is the number of classes
 
     # the cost we minimize during training is the NLL of the model
     cost = layer3.negative_log_likelihood(y)
@@ -276,13 +286,14 @@ def display_output(images, batch_size, layer, num_feature_maps):
 	Visualises the convolution of the last image to be processed.
 	NOTE: SAMPLE CODE ONLY - ONLY USED FOR LAYER0
 	'''
+	global im_height, im_width
 	# Create a theano function that computes the layer0 output for a single batch
 	# This declares to theano what the input source and output expression are
 	f = theano.function([layer.input], layer.output)
 
 	# recast the inputs from (batch_size, num_pixels) to a 4D tensor of size (batch_size, 1, height, width)
 	# as expected by the convolutional layer (the 1 is the "depth" of the input layer)
-	img = images.eval()[0 : batch_size].reshape(batch_size, 1, 48, 64) 
+	img = images.eval()[0 : batch_size].reshape(batch_size, 1, im_height, im_width) 
 	filtered_img = f(img)
 	filtered_img = numpy.add(filtered_img, -1. * filtered_img.min()) # Avoid negatives by ensuring the min value is 0
 	
@@ -326,5 +337,5 @@ def display_conv_filters(title, layer):
 if __name__ == '__main__':
     evaluate_lenet5(learning_rate=0.01,
                     n_epochs=300,
-                    nkerns=[5, 5], # number of units in each convolutional layer
+                    nkerns=[3, 3], # number of units in each convolutional layer
                     batch_size=6) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

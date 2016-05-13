@@ -26,8 +26,9 @@ class Movement:
                 if len(c) != 0 and cv2.contourArea(c) > change:
                     clazz = [x for x in possible_animals if x in file.lower()][0]
                     images.append((clazz, file))
-                else:
-                    images.append(("Nothing", file))
+                    break
+            else:
+                images.append(("Nothing", file))
         return images
 
 if __name__ == "__main__":

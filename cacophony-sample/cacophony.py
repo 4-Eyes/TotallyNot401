@@ -336,6 +336,6 @@ def display_conv_filters(title, layer):
 
 if __name__ == '__main__':
     evaluate_lenet5(learning_rate=0.01,
-                    n_epochs=300,
+                    n_epochs=2,
                     nkerns=[3, 3], # number of units in each convolutional layer
                     batch_size=6) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

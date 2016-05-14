@@ -35,16 +35,17 @@ from data import get_metadata
 
 # for plotting images of the filters
 from PIL import Image
-import pylab 
+import pylab
 
 im_width = None
 im_height = None
 
+
 def new_size(dimensions, filter_size):
-    return (dimensions[0]-filter_size+1)//2, (dimensions[1]-filter_size+1)//2
+    return (dimensions[0] - filter_size + 1) // 2, (dimensions[1] - filter_size + 1) // 2
+
 
 def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
-					
     """ Demonstrates lenet on a small sample of the cacophony dataset
 	using a network consisting of: 
 	- two (convolutional + max pool) layers
@@ -65,12 +66,12 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     """
     global im_width, im_height
 
-    filter_size = 5 # number of pixels across for the convolutional filter
-	
-    rng = numpy.random.RandomState(23455) # Use this one for the same result each time
-    #rng = numpy.random.RandomState()
+    filter_size = 5  # number of pixels across for the convolutional filter
 
-    datasets = load_data()
+    rng = numpy.random.RandomState(23455)  # Use this one for the same result each time
+    # rng = numpy.random.RandomState()
+
+    datasets = load_data(0.25)
     im_width, im_height = get_metadata()[1]
 
     train_set_x, train_set_y = datasets[0]
@@ -89,9 +90,9 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     index = T.lscalar()  # index to a [mini]batch
 
     # start-snippet-1
-    x = T.matrix('x')   # the data is presented as rasterized images
-    y = T.vector('y', "int32")  # the labels are presented as 1D vector of
-                        # [int] labels
+    x = T.matrix('x')  # the data is presented as rasterized images
+    y = T.vector('y', "int64")  # the labels are presented as 1D vector of
+    # [int] labels
 
     ######################
     # BUILD ACTUAL MODEL #
@@ -123,7 +124,8 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     layer1 = LeNetConvPoolLayer(
         rng,
         input=layer0.output,
-        image_shape=(batch_size, nkerns[0], layer1_dim[0], layer1_dim[1]), # previous layer generated 22*30 sized "images"
+        image_shape=(batch_size, nkerns[0], layer1_dim[0], layer1_dim[1]),
+        # previous layer generated 22*30 sized "images"
         filter_shape=(nkerns[1], nkerns[0], filter_size, filter_size),
         poolsize=(2, 2)
     )
@@ -133,18 +135,20 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     # This will generate a matrix of shape (batch_size, nkerns[1] * 9 * 13),
     # or (1, 50 * 9 * 13) with the default values.
     layer2_input = layer1.output.flatten(2)
-    layer2_dim = new_size(layer1_dim, filter_size) 
+    layer2_dim = new_size(layer1_dim, filter_size)
     # construct a fully-connected sigmoidal layer
     layer2 = HiddenLayer(
         rng,
         input=layer2_input,
-        n_in=nkerns[1] * layer2_dim[0] * layer2_dim[1], # 9*13 is the number of pixels in the "image" from the previous layer
+        n_in=nkerns[1] * layer2_dim[0] * layer2_dim[1],
+        # 9*13 is the number of pixels in the "image" from the previous layer
         n_out=batch_size,
         activation=T.tanh
     )
 
     # classify the values of the fully-connected sigmoidal layer
-    layer3 = LogisticRegression(input=layer2.output, n_in=batch_size, n_out=get_metadata()[0]) # n_out is the number of classes
+    layer3 = LogisticRegression(input=layer2.output, n_in=batch_size,
+                                n_out=get_metadata()[0])  # n_out is the number of classes
 
     # the cost we minimize during training is the NLL of the model
     cost = layer3.negative_log_likelihood(y)
@@ -182,7 +186,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     updates = [
         (param_i, param_i - learning_rate * grad_i)
         for param_i, grad_i in zip(params, grads)
-    ]
+        ]
 
     train_model = theano.function(
         [index],
@@ -202,14 +206,14 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     # early-stopping parameters
     patience = 10000  # look as this many examples regardless
     patience_increase = 2  # wait this much longer when a new best is
-                           # found
+    # found
     improvement_threshold = 0.995  # a relative improvement of this much is
-                                   # considered significant
+    # considered significant
     validation_frequency = min(n_train_batches, patience // 2)
-                                  # go through this many
-                                  # minibatches before checking the network
-                                  # on the validation set; in this case we
-                                  # check every epoch
+    # go through this many
+    # minibatches before checking the network
+    # on the validation set; in this case we
+    # check every epoch
 
     best_validation_loss = numpy.inf
     best_iter = 0
@@ -241,9 +245,9 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
 
-                    #improve patience if loss improvement is good enough
-                    if this_validation_loss < best_validation_loss *  \
-                       improvement_threshold:
+                    # improve patience if loss improvement is good enough
+                    if this_validation_loss < best_validation_loss * \
+                            improvement_threshold:
                         patience = max(patience, iter * patience_increase)
 
                     # save best validation score and iteration number
@@ -254,7 +258,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
                     test_losses = [
                         test_model(i)
                         for i in range(n_test_batches)
-                    ]
+                        ]
                     test_score = numpy.mean(test_losses)
                     print(('     epoch %i, minibatch %i/%i, test error of '
                            'best model %f %%') %
@@ -264,7 +268,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
             if patience <= iter:
                 done_looping = True
                 break
-				
+
     end_time = timeit.default_timer()
     print('Optimization complete.')
     print('Best validation score of %f %% obtained at iteration %i, '
@@ -275,41 +279,45 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
            ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
 
     display_output(test_set_x, batch_size, layer0, nkerns[0])
-		   
+
     # display the final filters for the convolutional layers
     display_conv_filters("Layer 0", layer0)
     display_conv_filters("Layer 1", layer1)
-	
-	
+
+
 def display_output(images, batch_size, layer, num_feature_maps):
-	'''
+    '''
 	Visualises the convolution of the last image to be processed.
 	NOTE: SAMPLE CODE ONLY - ONLY USED FOR LAYER0
 	'''
-	global im_height, im_width
-	# Create a theano function that computes the layer0 output for a single batch
-	# This declares to theano what the input source and output expression are
-	f = theano.function([layer.input], layer.output)
+    global im_height, im_width
+    # Create a theano function that computes the layer0 output for a single batch
+    # This declares to theano what the input source and output expression are
+    f = theano.function([layer.input], layer.output)
 
-	# recast the inputs from (batch_size, num_pixels) to a 4D tensor of size (batch_size, 1, height, width)
-	# as expected by the convolutional layer (the 1 is the "depth" of the input layer)
-	img = images.eval()[0 : batch_size].reshape(batch_size, 1, im_height, im_width) 
-	filtered_img = f(img)
-	filtered_img = numpy.add(filtered_img, -1. * filtered_img.min()) # Avoid negatives by ensuring the min value is 0
-	
-	pylab.gray();
-	
-	# Plot the original image
-	pylab.subplot(1, 4, 1); pylab.axis('off'); pylab.imshow(img[0, 0, :, :]) 
-	pylab.title("Original image")
+    # recast the inputs from (batch_size, num_pixels) to a 4D tensor of size (batch_size, 1, height, width)
+    # as expected by the convolutional layer (the 1 is the "depth" of the input layer)
+    img = images.eval()[0: batch_size].reshape(batch_size, 1, im_height, im_width)
+    filtered_img = f(img)
+    filtered_img = numpy.add(filtered_img, -1. * filtered_img.min())  # Avoid negatives by ensuring the min value is 0
 
-	# Plot each feature map
-	for map_num in range(num_feature_maps): 
-		pylab.subplot(1, num_feature_maps+1, map_num+2); pylab.axis('off'); pylab.imshow(filtered_img[0, map_num, :, :]) 
-		pylab.title("Feature map " + str(map_num))
-	pylab.show()	
+    pylab.gray();
 
-	
+    # Plot the original image
+    pylab.subplot(1, 4, 1);
+    pylab.axis('off');
+    pylab.imshow(img[0, 0, :, :])
+    pylab.title("Original image")
+
+    # Plot each feature map
+    for map_num in range(num_feature_maps):
+        pylab.subplot(1, num_feature_maps + 1, map_num + 2);
+        pylab.axis('off');
+        pylab.imshow(filtered_img[0, map_num, :, :])
+        pylab.title("Feature map " + str(map_num))
+    pylab.show()
+
+
 def display_conv_filters(title, layer):
     '''
     displays the filters as "images"
@@ -317,25 +325,27 @@ def display_conv_filters(title, layer):
     - one column per input into this layer (one for the first layer, 
       one per previous layer's feature maps for the next layer)
     '''
-    filters = layer.W # 4D Tensor of dimensions <number of feature maps, number of inputs, height, width>
-    bias = layer.b # vector of biases, one per feature map
+    filters = layer.W  # 4D Tensor of dimensions <number of feature maps, number of inputs, height, width>
+    bias = layer.b  # vector of biases, one per feature map
 
-    pylab.gray() # make plots grayscale
-	
+    pylab.gray()  # make plots grayscale
+
     i = 0
     num_feature_maps = len(filters.eval())
-    for map_num in range(num_feature_maps): # iterate through the feature maps
-        num_inputs = len(filters.eval()[map_num]) 
-        for input_num in range(num_inputs): # iterate through the inputs to this feature map
+    for map_num in range(num_feature_maps):  # iterate through the feature maps
+        num_inputs = len(filters.eval()[map_num])
+        for input_num in range(num_inputs):  # iterate through the inputs to this feature map
             i += 1
-            img_data = filters.eval()[map_num][input_num] # extract the (array of) filter values from the tensor slice
-            pylab.subplot(num_feature_maps, num_inputs, i); pylab.axis('off'); pylab.imshow(img_data) # Plot it
+            img_data = filters.eval()[map_num][input_num]  # extract the (array of) filter values from the tensor slice
+            pylab.subplot(num_feature_maps, num_inputs, i);
+            pylab.axis('off');
+            pylab.imshow(img_data)  # Plot it
             if (i == 1): pylab.title(title)
     pylab.show()
 
 
 if __name__ == '__main__':
     evaluate_lenet5(learning_rate=0.01,
-                    n_epochs=2,
-                    nkerns=[3, 3], # number of units in each convolutional layer
-                    batch_size=6) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+                    n_epochs=200,
+                    nkerns=[3, 3],  # number of units in each convolutional layer
+                    batch_size=500)  # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

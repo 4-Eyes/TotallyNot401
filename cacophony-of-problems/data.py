@@ -19,22 +19,6 @@ classes = {}
 class_iterator = 0
 image_size = None
 
-def normalize(arr):
-    """
-    Linear normalization
-    http://en.wikipedia.org/wiki/Normalization_%28image_processing%29
-    http://stackoverflow.com/questions/7422204/intensity-normalization-of-image-using-pythonpil-speed-issues
-    """
-    arr = arr.astype('float')
-    # Do not touch the alpha channel
-    for i in range(3):
-        minval = arr[...,i].min()
-        maxval = arr[...,i].max()
-        if minval != maxval:
-            arr[...,i] -= minval
-            arr[...,i] *= (255.0/(maxval-minval))
-    return arr
-
 def load_images(train_folder, valid_folder, test_folder, scale):
     ''' 
     Loads folder of imagess for use by convolution_mlp.
@@ -79,25 +63,6 @@ def load_folder(folder, scale):
     targetsTensor = theano.shared(numpy.asarray(clazzes))
     return (imagesTensor, targetsTensor)
 
-    
-#def load_image(filename, scale):
-#    ''' 
-#    Returns the image as a 1d vector of grayscale values
-#    '''
-#    global image_size
-
-#    with Image.open(filename).convert('L') as img:
-#        img.thumbnail((img.size[0] * scale, img.size[1] * scale), Image.ANTIALIAS)
-#        if image_size is None:
-#            image_size = img.size
-
-#        # extract the image as a vector of grayscale values between 0 and 1
-#        raster = (numpy.asarray(img, dtype='float64') / 256.).reshape(image_size[1]*image_size[0])
-
-#        #raster = normalize(np.array(raster))
-#    # print raster # DEBUG - shows the vector of greyscale values
-#    return raster
-    
 def load_data(scale=1.0):
     # Change these to point to your training, validation and test set image directories
     TRAIN_DIR = './train'

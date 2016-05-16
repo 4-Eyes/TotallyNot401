@@ -9,11 +9,12 @@ possible_animals = ["possum", "stoat", "rat", "other", "nothing"]
 
 class Movement:
 
-    def __init__(self, directory, learningRate = 0.3, changePercentage = 0.01):
+    def __init__(self, directory, learningRate = 0.3, changePercentage = 0.005, displayOpenCVImage = True):
         self.learningRate = learningRate
         self.changePercentage = changePercentage
         self.fgbg = cv2.createBackgroundSubtractorMOG2()
         self.files = sorted([join(directory, f) for f in listdir(directory) if isfile(join(directory, f))])
+        self.display_opencv_image = displayOpenCVImage
         print("-> Working on subdirectory",directory)
 
     def __enter__(self):
@@ -52,21 +53,16 @@ class Movement:
             diff = cv2.absdiff(bg_image, frame)
             thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)[1]
             thresh = cv2.dilate(thresh, None, iterations=2)
-
-
             thresh = cv2.cvtColor(thresh, cv2.COLOR_RGB2GRAY)
-
             _, cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             change = frame.shape[0] * frame.shape[1] * self.changePercentage
             required_change = frame.shape[0] * frame.shape[1] * self.changePercentage
             total_change = 0
-            for c in cnts:
-                if len(c) != 0:
-                    total_change += cv2.contourArea(c)
+            for c in [x for x in cnts if len(x) != 0]:
+                total_change += cv2.contourArea(c)
 
-            frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+            frame = cv2.cvtColor(diff,cv2.COLOR_BGR2RGB)
             pil = Image.fromarray(frame).convert('L')
-            #pil.show()
             pil.thumbnail((pil.size[0] * scale, pil.size[1] * scale), Image.ANTIALIAS)
 
             # extract the image as a vector of grayscale values between 0 and 1
@@ -76,6 +72,12 @@ class Movement:
                 clazz = [x for x in possible_animals if x in file.lower()][0]
             else:
                 clazz = "nothing"
+
+            if self.display_opencv_image:
+                disp = diff.copy()
+                cv2.putText(disp, clazz, (0,size[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),1,cv2.LINE_AA)
+                cv2.imshow('Classed As',disp)
+                cv2.waitKey(5)
 
             frames[i] = pil
             clazzes.append(clazz)

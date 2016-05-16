@@ -14,6 +14,7 @@ class Movement:
         self.changePercentage = changePercentage
         self.fgbg = cv2.createBackgroundSubtractorMOG2()
         self.files = sorted([join(directory, f) for f in listdir(directory) if isfile(join(directory, f))])
+        print("-> Working on subdirectory",directory)
 
     def __enter__(self):
         return self
@@ -44,6 +45,7 @@ class Movement:
         
         size = frames[0].shape[1], frames[0].shape[0]
         clazzes = []
+        clazzes_unique = set()
         for i, frame in enumerate(frames):
             print("Analysing images...", str(round(percent*i*100)) + '%', end='\r')
             frame = cv2.medianBlur(frame, 5)
@@ -72,13 +74,16 @@ class Movement:
 
             if total_change > required_change:
                 clazz = [x for x in possible_animals if x in file.lower()][0]
-                frames[i] = (clazz, pil, self.files[i])
-                clazzes.append(clazz)
             else:
-                frames[i] = ("nothing", pil, self.files[i])
-                clazzes.append("nothing")
-        print("Analysing images... 100%\nComplete")
-        return frames, size, clazzes
+                clazz = "nothing"
+
+            frames[i] = pil
+            clazzes.append(clazz)
+            if not clazz in clazzes_unique:
+                clazzes_unique.add(clazz)
+
+        print("Analysing images... 100%\nSubdirectory Complete\n")
+        return (frames, clazzes), size, clazzes_unique
 
 
 

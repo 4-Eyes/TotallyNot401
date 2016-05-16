@@ -61,16 +61,19 @@ def load_folder(folder, scale):
     images = []
     clazzes = []
     working_dir = os.path.join(os.getcwd(),folder)
-    for dir in [os.path.join(working_dir, d) for d in os.listdir(working_dir) if os.path.isdir(os.path.join(working_dir, d))]:
-        if "disabled" in dir:
-            continue
+    for dir in [os.path.join(working_dir, d) for d in os.listdir(working_dir) if os.path.isdir(os.path.join(working_dir, d)) and not "disabled" in d]:
         with background.Movement(dir) as m:
-            images_classes, image_size, clazzes_new = m.getMovementImages(scale)
+            (frames, input_clazzes), image_size, clazzes_unique = m.getMovementImages(scale)
 
-        for clazz in clazzes_new:
+        images.extend(frames)
+
+        for clazz in clazzes_unique:
             if not clazz in classes:
                 classes[clazz] = class_iterator
                 class_iterator += 1
+
+        for clazz in input_clazzes:
+            clazzes.append(classes[clazz])
                 
     imagesTensor = theano.shared(numpy.asarray(images))
     targetsTensor = theano.shared(numpy.asarray(clazzes))

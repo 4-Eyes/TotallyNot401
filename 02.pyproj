@@ -5,9 +5,9 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{773c434c-ac97-46d3-9972-f0309e7fd90b}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>cacophony-sample\cacophony.py</StartupFile>
+    <StartupFile>cacophony-of-problems\cacophony.py</StartupFile>
     <SearchPath>cacophony-sample\</SearchPath>
-    <WorkingDirectory>cacophony-sample</WorkingDirectory>
+    <WorkingDirectory>cacophony-of-problems</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
@@ -24,48 +24,8 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="cacophony-sample2\3wolfmoon.jpg" />
-    <Content Include="cacophony-sample2\possum_small.png" />
-    <Content Include="cacophony-sample2\test\possum_000.png" />
-    <Content Include="cacophony-sample2\test\possum_002.png" />
-    <Content Include="cacophony-sample2\test\possum_042.png" />
-    <Content Include="cacophony-sample2\test\possum_069.png" />
-    <Content Include="cacophony-sample2\test\rat_000.png" />
-    <Content Include="cacophony-sample2\test\rat_001.png" />
-    <Content Include="cacophony-sample2\test\rat_555.png" />
-    <Content Include="cacophony-sample2\test\rat_583.png" />
-    <Content Include="cacophony-sample2\test\stoat_001.png" />
-    <Content Include="cacophony-sample2\test\stoat_003.png" />
-    <Content Include="cacophony-sample2\test\stoat_485.png" />
-    <Content Include="cacophony-sample2\test\stoat_514.png" />
-    <Content Include="cacophony-sample2\train\possum_000.png" />
-    <Content Include="cacophony-sample2\train\possum_001.png" />
-    <Content Include="cacophony-sample2\train\possum_041.png" />
-    <Content Include="cacophony-sample2\train\possum_042.png" />
-    <Content Include="cacophony-sample2\train\rat_001.png" />
-    <Content Include="cacophony-sample2\train\rat_003.png" />
-    <Content Include="cacophony-sample2\train\rat_582.png" />
-    <Content Include="cacophony-sample2\train\rat_583.png" />
-    <Content Include="cacophony-sample2\train\stoat_000.png" />
-    <Content Include="cacophony-sample2\train\stoat_002.png" />
-    <Content Include="cacophony-sample2\train\stoat_271.png" />
-    <Content Include="cacophony-sample2\train\stoat_599.png" />
-    <Content Include="cacophony-sample2\valid\possum_001.png" />
-    <Content Include="cacophony-sample2\valid\possum_003.png" />
-    <Content Include="cacophony-sample2\valid\possum_296.png" />
-    <Content Include="cacophony-sample2\valid\possum_327.png" />
-    <Content Include="cacophony-sample2\valid\rat_001.png" />
-    <Content Include="cacophony-sample2\valid\rat_003.png" />
-    <Content Include="cacophony-sample2\valid\rat_370.png" />
-    <Content Include="cacophony-sample2\valid\rat_402.png" />
-    <Content Include="cacophony-sample2\valid\stoat_020.png" />
-    <Content Include="cacophony-sample2\valid\stoat_022.png" />
-    <Content Include="cacophony-sample2\valid\stoat_269.png" />
-    <Content Include="cacophony-sample2\valid\stoat_286.png" />
-    <Content Include="cacophony-sample2\__pycache__\convolutional_mlp.cpython-34.pyc" />
-    <Content Include="cacophony-sample2\__pycache__\data.cpython-34.pyc" />
-    <Content Include="cacophony-sample2\__pycache__\logistic_sgd.cpython-34.pyc" />
-    <Content Include="cacophony-sample2\__pycache__\mlp.cpython-34.pyc" />
+    <Content Include="cacophony-of-problems\3wolfmoon.jpg" />
+    <Content Include="cacophony-of-problems\possum_small.png" />
     <Content Include="cacophony-sample\3wolfmoon.jpg" />
     <Content Include="cacophony-sample\possum_small.png" />
     <Content Include="cacophony-sample\test\possum_000.png" />
@@ -106,15 +66,16 @@
     <Content Include="cacophony-sample\valid\stoat_286.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cacophony-sample2\cacophony.py" />
-    <Compile Include="cacophony-sample2\convolutional_mlp.py" />
-    <Compile Include="cacophony-sample2\data.py" />
-    <Compile Include="cacophony-sample2\images.py" />
-    <Compile Include="cacophony-sample2\logistic_sgd.py" />
-    <Compile Include="cacophony-sample2\mlp.py" />
-    <Compile Include="cacophony-sample2\possum.py" />
-    <Compile Include="cacophony-sample2\wolf.py" />
-    <Compile Include="cacophony-sample\background.py" />
+    <Compile Include="cacophony-of-problems\background.py" />
+    <Compile Include="cacophony-of-problems\cacophony.py" />
+    <Compile Include="cacophony-of-problems\convolutional_mlp.py" />
+    <Compile Include="cacophony-of-problems\data.py" />
+    <Compile Include="cacophony-of-problems\folders.py" />
+    <Compile Include="cacophony-of-problems\images.py" />
+    <Compile Include="cacophony-of-problems\logistic_sgd.py" />
+    <Compile Include="cacophony-of-problems\mlp.py" />
+    <Compile Include="cacophony-of-problems\possum.py" />
+    <Compile Include="cacophony-of-problems\wolf.py" />
     <Compile Include="cacophony-sample\cacophony.py" />
     <Compile Include="cacophony-sample\convolutional_mlp.py" />
     <Compile Include="cacophony-sample\data.py" />
@@ -125,15 +86,11 @@
     <Compile Include="cacophony-sample\wolf.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="cacophony-sample" />
-    <Folder Include="cacophony-sample2\" />
-    <Folder Include="cacophony-sample2\test\" />
-    <Folder Include="cacophony-sample2\train\" />
-    <Folder Include="cacophony-sample2\valid\" />
-    <Folder Include="cacophony-sample2\__pycache__\" />
-    <Folder Include="cacophony-sample\test" />
-    <Folder Include="cacophony-sample\train" />
-    <Folder Include="cacophony-sample\valid" />
+    <Folder Include="cacophony-of-problems\" />
+    <Folder Include="cacophony-sample\" />
+    <Folder Include="cacophony-sample\test\" />
+    <Folder Include="cacophony-sample\train\" />
+    <Folder Include="cacophony-sample\valid\" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

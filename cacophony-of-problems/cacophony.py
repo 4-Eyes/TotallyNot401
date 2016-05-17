@@ -131,29 +131,36 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
         filter_shape=(nkerns[1], nkerns[0], filter_size, filter_size),
         poolsize=(2, 2)
     )
-
+    layer2_dim = new_size(layer1_dim, filter_size)
+    layer2 = LeNetConvPoolLayer(
+        rng,
+	input=layer1.output,
+	image_shape=(batch_size, nkerns[1], layer2_dim[0], layer2_dim[1]),
+	filter_shape=(nkerns[2], nkerns[1], filter_size, filter_size),
+	poolsize=(2,2)
+    )
     # the HiddenLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size, num_pixels) (i.e matrix of rasterized images).
     # This will generate a matrix of shape (batch_size, nkerns[1] * 9 * 13),
     # or (1, 50 * 9 * 13) with the default values.
-    layer2_input = layer1.output.flatten(2)
-    layer2_dim = new_size(layer1_dim, filter_size)
+    layer3_input = layer2.output.flatten(2)
+    layer3_dim = new_size(layer2_dim, filter_size)
     # construct a fully-connected sigmoidal layer
-    layer2 = HiddenLayer(
+    layer3 = HiddenLayer(
         rng,
-        input=layer2_input,
-        n_in=nkerns[1] * layer2_dim[0] * layer2_dim[1],
+        input=layer3_input,
+        n_in=nkerns[2] * layer3_dim[0] * layer3_dim[1],
         # 9*13 is the number of pixels in the "image" from the previous layer
         n_out=batch_size,
         activation=T.tanh
     )
 
     # classify the values of the fully-connected sigmoidal layer
-    layer3 = LogisticRegression(input=layer2.output, n_in=batch_size,
+    layer4 = LogisticRegression(input=layer3.output, n_in=batch_size,
                                 n_out=get_metadata()[0])  # n_out is the number of classes
 
     # the cost we minimize during training is the NLL of the model
-    cost = layer3.negative_log_likelihood(y)
+    cost = layer4.negative_log_likelihood(y)
 
     # create a function to compute the mistakes that are made by the model
     test_model = theano.function(
@@ -175,7 +182,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
     )
 
     # create a list of all model parameters to be fit by gradient descent
-    params = layer3.params + layer2.params + layer1.params + layer0.params
+    params = layer4.params + layer3.params + layer2.params + layer1.params + layer0.params
 
     # create a list of gradients for all model parameters
     grads = T.grad(cost, params)
@@ -355,14 +362,16 @@ def display_conv_filters(title, layer):
 
 
 if __name__ == '__main__':
-    for i in range(3, 8):
-        evaluate_lenet5(learning_rate=0.01,
-                        n_epochs=100,
-                        nkerns=[i, i],  # number of units in each convolutional layer
-                        batch_size=455,
-                        use_foreground=False) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
-        evaluate_lenet5(learning_rate=0.01,
-                        n_epochs=100,
-                        nkerns=[i, i],  # number of units in each convolutional layer
-                        batch_size=455,
-                        use_foreground=True) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+    evaluate_lenet5(learning_rate=0.01, n_epochs=200, nkerns=[9,6,3],batch_size=22,use_foreground=False)
+    
+#    for i in range(3, 8):
+#        evaluate_lenet5(learning_rate=0.01,
+#                        n_epochs=100,
+#                        nkerns=[i, i],  # number of units in each convolutional layer
+#                        batch_size=455,
+#                        use_foreground=False) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+#        evaluate_lenet5(learning_rate=0.01,
+#                        n_epochs=100,
+#                        nkerns=[i, i],  # number of units in each convolutional layer
+#                        batch_size=455,
+#                        use_foreground=True) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

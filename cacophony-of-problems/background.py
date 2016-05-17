@@ -7,6 +7,7 @@ import numpy
 
 possible_animals = ["possum", "stoat", "rat", "other", "nothing"]
 
+
 class Movement:
 
     def __init__(self, directory, learningRate = 0.3, changePercentage = 0.0005, displayOpenCVImage = True):
@@ -16,7 +17,7 @@ class Movement:
         self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         self.files = sorted([join(directory, f) for f in listdir(directory) if isfile(join(directory, f))])
         self.display_opencv_image = displayOpenCVImage
-        print("-> Working on subdirectory",directory)
+        print("-> Working on subdirectory", directory)
 
     def __enter__(self):
         return self
@@ -27,25 +28,25 @@ class Movement:
         self.changePercentage = None
         self.learningRate = None
 
-    def getMovementImages(self, scale):
+    def getMovementImages(self, scale, use_foreground):
         images = []
         frames = []
-        percent = 1/len(self.files)
-        for i,file in enumerate(self.files):
-            print("Importing images...", str(round(percent*i*100)) + '%', end='\r')
+        percent = 1 / len(self.files)
+        for i, file in enumerate(self.files):
+            print("Importing images...", str(round(percent * i * 100)) + '%', end='\r')
             frame = cv2.imread(file)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frame = self.clahe.apply(frame)
             frame = cv2.medianBlur(frame, 5)
             pt1 = (int(369 / frame.shape[1] * 640), int(445 / frame.shape[0] * 480))
             pt2 = (int(581 / frame.shape[1] * 640), int(474 / frame.shape[0] * 480))
-            cv2.rectangle(frame, pt1, pt2, (0,0,0), -1)
+            cv2.rectangle(frame, pt1, pt2, (0, 0, 0), -1)
             fgmask = self.fgbg.apply(frame, self.learningRate)
             frames.append(frame)
 
         print("Importing images... 100%")
         bg_image = self.fgbg.getBackgroundImage()
-        
+
         h = frames[0].shape[0]
         size = int(frames[0].shape[1]*scale), int(frames[0].shape[0]*scale)
         clazzes = []
@@ -65,11 +66,11 @@ class Movement:
             for c in [x for x in cnts if len(x) != 0]:
                 total_change += cv2.contourArea(c)
 
-            pil = Image.fromarray(diff).convert('L')
+            pil = Image.fromarray(diff).convert('L') if use_foreground else Image.fromarray(frame).convert('L')
             pil.thumbnail((pil.size[0] * scale, pil.size[1] * scale), Image.ANTIALIAS)
 
             # extract the image as a vector of grayscale values between 0 and 1
-            pil = (numpy.asarray(pil, dtype='float64') / 256.).reshape(size[0]*size[1])
+            pil = (numpy.asarray(pil, dtype='float64') / 256.).reshape(size[0] * size[1])
 
             if total_change > required_change:
                 clazz = [x for x in possible_animals if x in file.lower()][0]

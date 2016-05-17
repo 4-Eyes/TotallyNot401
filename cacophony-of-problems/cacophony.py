@@ -17,9 +17,11 @@ References:
 
 from __future__ import print_function
 
+import getpass
 import os
 import sys
 import timeit
+import recording
 
 import numpy
 
@@ -45,7 +47,7 @@ def new_size(dimensions, filter_size):
     return (dimensions[0] - filter_size + 1) // 2, (dimensions[1] - filter_size + 1) // 2
 
 
-def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
+def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground):
     """ Demonstrates lenet on a small sample of the cacophony dataset
 	using a network consisting of: 
 	- two (convolutional + max pool) layers
@@ -71,7 +73,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     rng = numpy.random.RandomState(23455)  # Use this one for the same result each time
     # rng = numpy.random.RandomState()
 
-    datasets = load_data(0.5)
+    datasets = load_data(0.25, use_foreground)
     im_width, im_height = get_metadata()[1]
 
     train_set_x, train_set_y = datasets[0]
@@ -91,7 +93,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
 
     # start-snippet-1
     x = T.matrix('x')  # the data is presented as rasterized images
-    y = T.vector('y', "int32")  # the labels are presented as 1D vector of
+    y = T.vector('y', "int32" if getpass.getuser() == "Matthew" else "int64")  # the labels are presented as 1D vector of
     # [int] labels
 
     ######################
@@ -223,6 +225,9 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     epoch = 0
     done_looping = False
 
+    test_score = 1
+    save_file_name = str(n_epochs) + str(learning_rate) + str(batch_size) + str(nkerns) + str(use_foreground) + ".csv"
+    recording.append_to_file(save_file_name, "epoch, minibatch, validation error, test error,")
     while (epoch < n_epochs) and (not done_looping):
         epoch = epoch + 1
         for minibatch_index in range(n_train_batches):
@@ -240,7 +245,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
                 this_validation_loss = numpy.mean(validation_losses)
                 print('epoch %i, minibatch %i/%i, validation error %f %%' %
                       (epoch, minibatch_index + 1, n_train_batches,
-                       this_validation_loss * 100.))
+                       this_validation_loss * 100.0))
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
@@ -264,12 +269,16 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
                            'best model %f %%') %
                           (epoch, minibatch_index + 1, n_train_batches,
                            test_score * 100.))
+                    recording.append_to_file(save_file_name, "{0},{1}/{2},{3},{4},".format(epoch, minibatch_index+1, n_train_batches, this_validation_loss * 100.0, test_score * 100.0))
+                else:
+                    recording.append_to_file(save_file_name, "{0},{1}/{2},{3},{4},".format(epoch, minibatch_index+1, n_train_batches, this_validation_loss * 100.0, 0))
 
             if patience <= iter:
                 done_looping = True
                 break
 
     end_time = timeit.default_timer()
+    recording.append_to_file(save_file_name, "end time = {0}".format(end_time))
     print('Optimization complete.')
     print('Best validation score of %f %% obtained at iteration %i, '
           'with test performance %f %%' %
@@ -278,11 +287,12 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
            os.path.split(__file__)[1] +
            ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
 
-    display_output(test_set_x, batch_size, layer0, nkerns[0])
+    datasets = None
+    # display_output(test_set_x, batch_size, layer0, nkerns[0])
 
     # display the final filters for the convolutional layers
-    display_conv_filters("Layer 0", layer0)
-    display_conv_filters("Layer 1", layer1)
+    # display_conv_filters("Layer 0", layer0)
+    # display_conv_filters("Layer 1", layer1)
 
 
 def display_output(images, batch_size, layer, num_feature_maps):
@@ -345,7 +355,14 @@ def display_conv_filters(title, layer):
 
 
 if __name__ == '__main__':
-    evaluate_lenet5(learning_rate=0.01,
-                    n_epochs=10,
-                    nkerns=[3, 3],  # number of units in each convolutional layer
-                    batch_size=500)  # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+    for i in range(3, 8):
+        evaluate_lenet5(learning_rate=0.01,
+                        n_epochs=100,
+                        nkerns=[i, i],  # number of units in each convolutional layer
+                        batch_size=455,
+                        use_foreground=False) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+        evaluate_lenet5(learning_rate=0.01,
+                        n_epochs=100,
+                        nkerns=[i, i],  # number of units in each convolutional layer
+                        batch_size=455,
+                        use_foreground=True) # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

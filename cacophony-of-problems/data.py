@@ -3,7 +3,7 @@ Brent Martin 22/4/2016
 Routines for loading images files into the appropriate data structures 
 for processing by the colvolutional network code.
 '''
-
+import getpass
 import os
 import numpy
 import theano
@@ -19,7 +19,7 @@ classes = {}
 class_iterator = 0
 image_size = None
 
-def load_images(train_folder, valid_folder, test_folder, scale):
+def load_images(train_folder, valid_folder, test_folder, scale, use_foreground):
     ''' 
     Loads folder of imagess for use by convolution_mlp.
     train_set, valid_set, test_set format: tuple(input, target)
@@ -29,10 +29,10 @@ def load_images(train_folder, valid_folder, test_folder, scale):
     the number of rows in the input. It should give the target
     to the example with the same index in the input.
     '''
-    return load_folder(train_folder, scale), load_folder(valid_folder, scale), load_folder(test_folder, scale),
+    return load_folder(train_folder, scale, use_foreground), load_folder(valid_folder, scale, use_foreground), load_folder(test_folder, scale, use_foreground),
 
     
-def load_folder(folder, scale):
+def load_folder(folder, scale, use_foreground):
     '''
     Loads a single folder of images
     - load each image into a vector of greyscale values, making a matrix of <image , pixels>
@@ -46,8 +46,8 @@ def load_folder(folder, scale):
     clazzes = []
     working_dir = os.path.join(os.getcwd(),folder)
     for dir in [os.path.join(working_dir, d) for d in os.listdir(working_dir) if os.path.isdir(os.path.join(working_dir, d)) and not "disabled" in d]:
-        with background.Movement(dir) as m:
-            (frames, input_clazzes), image_size, clazzes_unique = m.getMovementImages(scale)
+        with background.Movement(dir, displayOpenCVImage=False) as m:
+            (frames, input_clazzes), image_size, clazzes_unique = m.getMovementImages(scale, use_foreground)
 
         images.extend(frames)
 
@@ -63,13 +63,18 @@ def load_folder(folder, scale):
     targetsTensor = theano.shared(numpy.asarray(clazzes))
     return (imagesTensor, targetsTensor)
 
-def load_data(scale=1.0):
+def load_data(scale=1.0, use_foreground = False):
     # Change these to point to your training, validation and test set image directories
-    TRAIN_DIR = './train'
-    VALID_DIR = './valid'
-    TEST_DIR = './test'
+    if getpass.getuser() == "Matthew":
+        TRAIN_DIR = './train'
+        VALID_DIR = './valid'
+        TEST_DIR = './test'
+    else:
+        TRAIN_DIR = "/media/james/9a6d3124-40f4-4227-9ef6-5cecdc794447/Reference Images/train"
+        VALID_DIR = "/media/james/9a6d3124-40f4-4227-9ef6-5cecdc794447/Reference Images/valid"
+        TEST_DIR = "/media/james/9a6d3124-40f4-4227-9ef6-5cecdc794447/Reference Images/test"
 
-    return load_images(TRAIN_DIR, VALID_DIR, TEST_DIR, scale)
+    return load_images(TRAIN_DIR, VALID_DIR, TEST_DIR, scale, use_foreground)
 
 def get_metadata():
     global image_size

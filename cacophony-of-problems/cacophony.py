@@ -71,7 +71,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size):
     rng = numpy.random.RandomState(23455)  # Use this one for the same result each time
     # rng = numpy.random.RandomState()
 
-    datasets = load_data()
+    datasets = load_data(0.5)
     im_width, im_height = get_metadata()[1]
 
     train_set_x, train_set_y = datasets[0]
@@ -346,6 +346,6 @@ def display_conv_filters(title, layer):
 
 if __name__ == '__main__':
     evaluate_lenet5(learning_rate=0.01,
-                    n_epochs=2,
+                    n_epochs=10,
                     nkerns=[3, 3],  # number of units in each convolutional layer
-                    batch_size=6)  # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)
+                    batch_size=500)  # number of rows to process at a time (1 = fully stochastic, n_examples = non-stochastic)

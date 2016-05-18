@@ -73,7 +73,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
     rng = numpy.random.RandomState(23455)  # Use this one for the same result each time
     # rng = numpy.random.RandomState()
 
-    datasets = load_data(0.25, use_foreground)
+    datasets = load_data(0.3, use_foreground)
     im_width, im_height = get_metadata()[1]
 
     train_set_x, train_set_y = datasets[0]
@@ -139,12 +139,20 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
 	filter_shape=(nkerns[2], nkerns[1], filter_size, filter_size),
 	poolsize=(2,2)
     )
+    layerA_dim = new_size(layer2_dim, filter_size)
+    layerA = LeNetConvPoolLayer(
+	rng,
+	input=layer2.output,
+	image_shape=(batch_size, nkerns[2], layerA_dim[0], layerA_dim[1]),
+	filter_shape=(nkerns[3], nkerns[2], filter_size, filter_size),
+	poolsize=(2,2)
+    )
     # the HiddenLayer being fully-connected, it operates on 2D matrices of
     # shape (batch_size, num_pixels) (i.e matrix of rasterized images).
     # This will generate a matrix of shape (batch_size, nkerns[1] * 9 * 13),
     # or (1, 50 * 9 * 13) with the default values.
-    layer3_input = layer2.output.flatten(2)
-    layer3_dim = new_size(layer2_dim, filter_size)
+    layer3_input = layerA.output.flatten(2)
+    layer3_dim = new_size(layerA_dim, filter_size)
     # construct a fully-connected sigmoidal layer
     layer3 = HiddenLayer(
         rng,
@@ -182,7 +190,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
     )
 
     # create a list of all model parameters to be fit by gradient descent
-    params = layer4.params + layer3.params + layer2.params + layer1.params + layer0.params
+    params = layer4.params + layer3.params + layer2.params + layer1.params + layer0.params + layerA.params
 
     # create a list of gradients for all model parameters
     grads = T.grad(cost, params)
@@ -362,7 +370,7 @@ def display_conv_filters(title, layer):
 
 
 if __name__ == '__main__':
-    evaluate_lenet5(learning_rate=0.01, n_epochs=200, nkerns=[8,4,2],batch_size=100,use_foreground=False)
+    evaluate_lenet5(learning_rate=0.01, n_epochs=200, nkerns=[8,4,2,2],batch_size=100,use_foreground=False)
     
 #    for i in range(3, 8):
 #        evaluate_lenet5(learning_rate=0.01,

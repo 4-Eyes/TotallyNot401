@@ -165,7 +165,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
     # create a function to compute the mistakes that are made by the model
     test_model = theano.function(
         [index],
-        layer3.errors(y),
+        layer4.errors(y),
         givens={
             x: test_set_x[index * batch_size: (index + 1) * batch_size],
             y: test_set_y[index * batch_size: (index + 1) * batch_size]
@@ -174,7 +174,7 @@ def evaluate_lenet5(learning_rate, n_epochs, nkerns, batch_size, use_foreground)
 
     validate_model = theano.function(
         [index],
-        layer3.errors(y),
+        layer4.errors(y),
         givens={
             x: valid_set_x[index * batch_size: (index + 1) * batch_size],
             y: valid_set_y[index * batch_size: (index + 1) * batch_size]
@@ -362,7 +362,7 @@ def display_conv_filters(title, layer):
 
 
 if __name__ == '__main__':
-    evaluate_lenet5(learning_rate=0.01, n_epochs=200, nkerns=[9,6,3],batch_size=22,use_foreground=False)
+    evaluate_lenet5(learning_rate=0.01, n_epochs=200, nkerns=[8,4,2],batch_size=100,use_foreground=False)
     
 #    for i in range(3, 8):
 #        evaluate_lenet5(learning_rate=0.01,
